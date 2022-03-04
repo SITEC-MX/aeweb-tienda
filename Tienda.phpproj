@@ -1,0 +1,47 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Name>Tienda</Name>
+    <ProjectGuid>{92073dee-a153-4906-b8c9-258e36e8a89a}</ProjectGuid>
+    <RootNamespace>
+    </RootNamespace>
+    <OutputType>Library</OutputType>
+    <ProjectTypeGuids>{A0786B88-2ADB-4C21-ABE8-AA2D79766269}</ProjectTypeGuids>
+    <Runtime>PHP</Runtime>
+    <RuntimeVersion>7.4</RuntimeVersion>
+    <SaveServerSettingsInUserFile>false</SaveServerSettingsInUserFile>
+    <EnvName>PHPDev</EnvName>
+    <PHPDevHostName>localhost</PHPDevHostName>
+    <PHPDevAutoPort>false</PHPDevAutoPort>
+    <PHPDevRouting>index.php</PHPDevRouting>
+    <PHPDevPort>80</PHPDevPort>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <IncludeDebugInformation>true</IncludeDebugInformation>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <IncludeDebugInformation>false</IncludeDebugInformation>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include=".env" />
+    <Compile Include=".env.example" />
+    <Compile Include=".gitignore" />
+    <Compile Include="app\404.php" />
+    <Compile Include="app\home.php" />
+    <Compile Include="app\ir-a-home.php" />
+    <Compile Include="composer.json" />
+    <Compile Include="configuracion.php" />
+    <Compile Include="favicon.ico" />
+    <Compile Include="index.php" />
+    <Compile Include="README.md" />
+    <Compile Include="TIENDA\funciones.php" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="app\" />
+    <Folder Include=".cache\" />
+    <Folder Include="TIENDA\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="app\openapi.json" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,25 @@
+{
+    "name": "sitec/ae-tienda",
+    "description": "Tienda Online del Administrador de Empresas Web",
+    "type": "project",
+    "authors": [
+        {
+            "name": "SiTEC",
+            "email": "contacto@sistemasespecializados.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {
+            "TIENDA\\": "TIENDA/"
+        },
+        "files": [
+            "TIENDA/funciones.php"
+        ]
+    },
+    "require": {
+        "vlucas/phpdotenv": "^5.4",
+        "sitec/aeweb": "^0.2.2",
+        "sitec/fdw": "^2.0"
+    }
+}

@@ -1,0 +1,8 @@
+/.vs/
+/vendor/
+
+/.env
+/composer.lock
+/Tienda.phpproj.user
+
+/app
