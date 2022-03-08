@@ -74,14 +74,13 @@ if(!$app_codigo_error) // Si no se está procesando ningún error
 }
 else // Si se está procesando un error
 {
-    $php_script_ruta = __APP__ . "/{$app_codigo_error}.php";
-
-    require_once $php_script_ruta;
-
     switch($app_codigo_error)
     {
         case 404:
             header($_SERVER["SERVER_PROTOCOL"] . " 404 Not Found", TRUE, 404);
             break;
     }
+
+    $php_script_ruta = __APP__ . "/{$app_codigo_error}.php";
+    require_once $php_script_ruta;
 }

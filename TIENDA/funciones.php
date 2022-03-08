@@ -20,6 +20,7 @@
         {
             $oa_url = $ao["url"];
             $oa_php = $ao["php"];
+            $oa_tipo = isset($ao["tipo"]) ? $ao["tipo"] : "text/html";
 
             $oa_variables = NULL;
             preg_match_all('/\{(?<variables>\w+)\}/', $oa_url, $oa_variables);
@@ -41,7 +42,7 @@
                 (
                     "GET"=>array
                     (
-                        "autenticar"=>FALSE, "get"=>array(), "body"=>array(), "body_tipo"=>"text/html", "respuesta"=>array(), "respuesta_tipo"=>"text/html"
+                        "autenticar"=>FALSE, "get"=>array(), "body"=>array(), "body_tipo"=>$oa_tipo, "respuesta"=>array(), "respuesta_tipo"=>"text/html"
                     )
                 )
             );
