@@ -22,6 +22,9 @@
             $oa_php = $ao["php"];
             $oa_tipo = isset($ao["tipo"]) ? $ao["tipo"] : "text/html";
 
+            // Componemos la / por \/
+            $oa_url = str_replace("/", "\/", $oa_url);
+
             $oa_variables = NULL;
             preg_match_all('/\{(?<variables>\w+)\}/', $oa_url, $oa_variables);
 
@@ -84,6 +87,26 @@
                 $exito_variable = CargarVariableDeRequest("HREFLANG", "id,nombre", $filtros);
                 break;
 
+            case "presentacion":
+                $filtros = array
+                (
+                    array("campo"=>"activo", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>1),
+                    array("campo"=>"url", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>$variable_valor)
+                );
+
+                $exito_variable = CargarVariableDeRequest("PRESENTACION", "id,producto_nombre,nombre", $filtros);
+                break;
+
+            case "categoria":
+                $filtros = array
+                (
+                    array("campo"=>"activo", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>1),
+                    array("campo"=>"url", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>$variable_valor)
+                );
+
+                $exito_variable = CargarVariableDeRequest("CATEGORIA", "id,nombre", $filtros);
+                break;
+
             default: // Variable no soportada
                 $exito_variable = FALSE;
         }
@@ -100,28 +123,64 @@
 
  function CargarVariableDeRequest(string $global_nombre, string $campos, array $filtros):bool
  {
-     global $AEWEB;
-
      $exito = FALSE;
 
-     $body = array();
-     $body["inicio"] = 1;
-     $body["registros"] = 1;
-     $body["campos"] = $campos;
-     $body["filtro"] = $filtros;
-
-     $estado = NULL;
+     $registros = NULL;
      switch($global_nombre)
      {
-         case "HREFLANG": $estado = $AEWEB->POST_TiendaHreflangsQuery(NULL, NULL, $body); break;
+         case "HREFLANG": $registros = ObtenerHreflangs($campos, 1, 1, $filtros); break;
+         case "PRESENTACION": $registros = ObtenerPresentaciones($campos, 1, 1, $filtros); break;
+         case "CATEGORIA": $registros = ObtenerCategorias($campos, 1, 1, $filtros); break;
      }
 
-     if($estado["estado"] == OK && $estado["resultado"]["filtrados"] == 1)
+     if($registros) // Éxito al obtener el registro
      {
-         $GLOBALS[$global_nombre] =  $estado["resultado"]["registros"][0];
+         $GLOBALS[$global_nombre] =  $registros;
 
          $exito = TRUE;
      }
 
      return $exito;
+ }
+
+ function ObtenerHreflangs(string $campos, int $inicio, int $numero_de_registros, array $filtros):?array
+ {
+    return ObtenerDatos("HREFLANG", $campos, $inicio, $numero_de_registros, $filtros);
+ }
+
+ function ObtenerPresentaciones(string $campos, int $inicio, int $numero_de_registros, array $filtros):?array
+ {
+     return ObtenerDatos("PRESENTACIONES", $campos, $inicio, $numero_de_registros, $filtros);
+ }
+
+ function ObtenerCategorias(string $campos, int $inicio, int $numero_de_registros, array $filtros):?array
+ {
+     return ObtenerDatos("CATEGORIAS", $campos, $inicio, $numero_de_registros, $filtros);
+ }
+
+ function ObtenerDatos(string $entidad, string $campos, int $inicio, int $numero_de_registros, array $filtros):?array
+ {
+     global $AEWEB;
+
+     $body = array();
+     $body["inicio"] = $inicio;
+     $body["registros"] = $numero_de_registros;
+     $body["campos"] = $campos;
+     $body["filtro"] = $filtros;
+
+     $estado = NULL;
+     switch($entidad)
+     {
+         case "HREFLANGS": $estado = $AEWEB->POST_TiendaHreflangsQuery(NULL, NULL, $body); break;
+         case "PRESENTACIONES": $estado = $AEWEB->POST_InventarioPresentacionesQuery(NULL, NULL, $body); break;
+         case "CATEGORIAS": $estado = $AEWEB->POST_InventarioCategoriasQuery(NULL, NULL, $body); break;
+     }
+
+     $registros = NULL;
+     if($estado["estado"] == OK) // Éxito al obtener los datos
+     {
+         $registros =  $estado["resultado"]["registros"];
+     }
+
+     return $registros;
  }
