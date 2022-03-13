@@ -84,7 +84,7 @@
                     array("campo"=>"url", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>$variable_valor)
                 );
 
-                $exito_variable = CargarVariableDeRequest("HREFLANG", "id,nombre", $filtros);
+                $exito_variable = CargarVariableDeRequest("HREFLANG", array("id", "nombre"), $filtros);
                 break;
 
             case "presentacion":
@@ -94,7 +94,7 @@
                     array("campo"=>"url", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>$variable_valor)
                 );
 
-                $exito_variable = CargarVariableDeRequest("PRESENTACION", "id,producto_nombre,nombre", $filtros);
+                $exito_variable = CargarVariableDeRequest("PRESENTACION", array("id", "producto_nombre", "nombre"), $filtros);
                 break;
 
             case "categoria":
@@ -104,7 +104,7 @@
                     array("campo"=>"url", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>$variable_valor)
                 );
 
-                $exito_variable = CargarVariableDeRequest("CATEGORIA", "id,nombre", $filtros);
+                $exito_variable = CargarVariableDeRequest("CATEGORIA", array("id","nombre"), $filtros);
                 break;
 
             default: // Variable no soportada
@@ -121,7 +121,7 @@
      return $exito;
  }
 
- function CargarVariableDeRequest(string $global_nombre, string $campos, array $filtros):bool
+ function CargarVariableDeRequest(string $global_nombre, array $campos, array $filtros):bool
  {
      $exito = FALSE;
 
@@ -143,22 +143,22 @@
      return $exito;
  }
 
- function ObtenerHreflangs(string $campos, int $inicio, int $numero_de_registros, array $filtros):?array
+ function ObtenerHreflangs(array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL):?array
  {
-    return ObtenerDatos("HREFLANG", $campos, $inicio, $numero_de_registros, $filtros);
+    return ObtenerDatos("HREFLANG", $campos, $inicio, $numero_de_registros, $filtros, $ordenamiento);
  }
 
- function ObtenerPresentaciones(string $campos, int $inicio, int $numero_de_registros, array $filtros):?array
+ function ObtenerPresentaciones(array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL):?array
  {
-     return ObtenerDatos("PRESENTACIONES", $campos, $inicio, $numero_de_registros, $filtros);
+     return ObtenerDatos("PRESENTACIONES", $campos, $inicio, $numero_de_registros, $filtros, $ordenamiento);
  }
 
- function ObtenerCategorias(string $campos, int $inicio, int $numero_de_registros, array $filtros):?array
+ function ObtenerCategorias(array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL):?array
  {
-     return ObtenerDatos("CATEGORIAS", $campos, $inicio, $numero_de_registros, $filtros);
+     return ObtenerDatos("CATEGORIAS", $campos, $inicio, $numero_de_registros, $filtros, $ordenamiento);
  }
 
- function ObtenerDatos(string $entidad, string $campos, int $inicio, int $numero_de_registros, array $filtros):?array
+ function ObtenerDatos(string $entidad, array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL):?array
  {
      global $AEWEB;
 
@@ -166,7 +166,16 @@
      $body["inicio"] = $inicio;
      $body["registros"] = $numero_de_registros;
      $body["campos"] = $campos;
-     $body["filtro"] = $filtros;
+
+     if($filtros)
+     {
+         $body["filtro"] = $filtros;
+     }
+
+     if($ordenamiento)
+     {
+         $body["ordenamiento_campos"] = $ordenamiento;
+     }
 
      $estado = NULL;
      switch($entidad)
@@ -183,4 +192,30 @@
      }
 
      return $registros;
+ }
+
+ function ObtenerURLImagenChicaPresentacion(?string $presentacion_url):string
+ {
+     global $CFG;
+
+     $url = NULL;
+
+     if($presentacion_url) // Si hay imagen de presentación
+     {
+         $pathinfo = pathinfo($presentacion_url);
+
+         $empresa = $CFG->aeweb_empresa;
+         $dirname = $pathinfo["dirname"];
+         $filename_original = $pathinfo["filename"];
+
+         $filename_chica = str_replace('imagen-', 'imagen-240x320-', $filename_original);
+
+         $url = "https://archivo.aeweb.app/{$empresa}/{$dirname}/{$filename_chica}.webp";
+     }
+     else // Si no hay imagen de presentación
+     {
+         $url = "/app/assets/img/sin-imagen.png";
+     }
+
+     return $url;
  }
