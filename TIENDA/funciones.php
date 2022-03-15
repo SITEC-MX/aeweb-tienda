@@ -203,7 +203,7 @@
      return $registros;
  }
 
- function ObtenerURLImagenChicaPresentacion(string $presentacion_url, bool $imagen_en_repositorio_auxiliar):string
+ function ObtenerURLImagenChicaPresentacion(?string $presentacion_url, ?bool $imagen_en_repositorio_auxiliar):string
  {
      global $CFG;
 
