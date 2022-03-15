@@ -203,7 +203,7 @@
      return $registros;
  }
 
- function ObtenerURLImagenChicaPresentacion(?string $presentacion_url):string
+ function ObtenerURLImagenChicaPresentacion(string $presentacion_url, bool $imagen_en_repositorio_auxiliar):string
  {
      global $CFG;
 
@@ -218,8 +218,9 @@
          $filename_original = $pathinfo["filename"];
 
          $filename_chica = str_replace('imagen-', 'imagen-240x320-', $filename_original);
+         $repositorio_host = $imagen_en_repositorio_auxiliar ? "archivo-aux" : "archivo";
 
-         $url = "https://archivo.aeweb.app/{$empresa}/{$dirname}/{$filename_chica}.webp";
+         $url = "https://{$repositorio_host}.aeweb.app/{$empresa}/{$dirname}/{$filename_chica}.webp";
      }
      else // Si no hay imagen de presentación
      {
