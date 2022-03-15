@@ -11,25 +11,32 @@ require_once __DIR__ . "/configuracion.php";
 
 use \Mpsoft\FDW\Core\OpenAPI;
 
+$OPENAPI = ObtenerDefinicionOpenAPI();
+$OPENAPI_REQUEST = OpenAPI::ObtenerLlamadaSolicitada($OPENAPI);
+
 // Verificamos si la llamada está disponible en cache
 $CACHE_ARCHIVO_RUTA = NULL;
-if($CFG->activar_cache) // Si el cache está activado
+if($OPENAPI_REQUEST && $CFG->activar_cache) // Si el cache está activado
 {
-    $LLAMADASOLICITADA = ObtenerURLActual();
+    $querystring_str = "";
+    foreach($OPENAPI_REQUEST["get"] as $get_nombre=>$get_valor) // Para cada variable proporcionada por query-string
+    {
+        $querystring_str .= "{$get_nombre}={$get_valor}";
+    }
 
-     $LLAMADASOLICITADA_REMPLAZADA = str_replace( array("/"), "_", $LLAMADASOLICITADA);
-     $CACHE_ARCHIVO_RUTA = __CACHE__ . "/{$LLAMADASOLICITADA_REMPLAZADA}.html";
+    $base = $OPENAPI_REQUEST["script_php_ruta"];
+    $querystring = $querystring_str ? md5($querystring_str) : "";
 
-     if( file_exists($CACHE_ARCHIVO_RUTA) ) // Si el archivo está disponible en cache
-     {
-         echo file_get_contents($CACHE_ARCHIVO_RUTA);
-         die;
-     }
+    $CACHE_ARCHIVO_RUTA = __CACHE__ . "/{$base}_{$querystring}.html";
+
+    if( file_exists($CACHE_ARCHIVO_RUTA) ) // Si el archivo está disponible en cache
+    {
+        echo file_get_contents($CACHE_ARCHIVO_RUTA);
+        die;
+    }
 }
 
 
-$OPENAPI = ObtenerDefinicionOpenAPI();
-$OPENAPI_REQUEST = OpenAPI::ObtenerLlamadaSolicitada($OPENAPI);
 
 $app_php_script = NULL;
 $app_codigo_error = NULL;

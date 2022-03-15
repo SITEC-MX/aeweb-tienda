@@ -273,6 +273,7 @@
     <Content Include="app\assets\img\shop\detail\sm-4.png" />
     <Content Include="app\assets\img\shop\product-bg.jpg" />
     <Content Include="app\assets\img\shop\quick-view.png" />
+    <Content Include="app\assets\img\sin-imagen.png" />
     <Content Include="app\assets\img\subheader-bl.png" />
     <Content Include="app\assets\img\subheader-br.png" />
     <Content Include="app\assets\img\subheader-tr.png" />

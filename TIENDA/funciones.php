@@ -21,6 +21,7 @@
             $oa_url = $ao["url"];
             $oa_php = $ao["php"];
             $oa_tipo = isset($ao["tipo"]) ? $ao["tipo"] : "text/html";
+            $oa_querystring = $ao["querystring"];
 
             // Componemos la / por \/
             $oa_url = str_replace("/", "\/", $oa_url);
@@ -31,7 +32,17 @@
             $variables = array();
             foreach($oa_variables["variables"] as $variable)
             {
-                $variables[$variable] = 6;
+                $variables[$variable] = array("tipo"=>FDW_DATO_STRING);
+            }
+
+            $querystring = array();
+            foreach($oa_querystring as $oa_qs)
+            {
+                $oa_qs_nombre = $oa_qs["nombre"];
+                $oa_qs_tipo = isset($oa_qs["tipo"]) ? $oa_qs["tipo"] : FDW_DATO_STRING;
+                $oa_qs_default = isset($oa_qs["default"]) ? $oa_qs["default"] : NULL;
+
+                $querystring[$oa_qs_nombre] = array("tipo"=>$oa_qs_tipo, "default"=>$oa_qs_default);
             }
 
             $oa_url_remplazada = preg_replace('/\{(\w+)\}/', '(?<$1>[a-zA-Z0-9+_.-]+)', $oa_url);
@@ -45,7 +56,7 @@
                 (
                     "GET"=>array
                     (
-                        "autenticar"=>FALSE, "get"=>array(), "body"=>array(), "body_tipo"=>$oa_tipo, "respuesta"=>array(), "respuesta_tipo"=>"text/html"
+                        "autenticar"=>FALSE, "get"=>$querystring, "body"=>array(), "body_tipo"=>$oa_tipo, "respuesta"=>array(), "respuesta_tipo"=>"text/html"
                     )
                 )
             );
@@ -53,18 +64,6 @@
      }
 
      return $openapi;
- }
-
- function ObtenerURLActual():string
- {
-     $LLAMADASOLICITADA = substr($_SERVER["REQUEST_URI"], 1); // Sin / al inicio
-     $INDICE_PARAMETRO = strpos($LLAMADASOLICITADA, "?"); // Quitamos los parámetros recibidos por $_GET
-     if($INDICE_PARAMETRO !== FALSE) // Si hay parámetros
-     {
-         $LLAMADASOLICITADA = substr($LLAMADASOLICITADA, 0, $INDICE_PARAMETRO);
-     }
-
-     return $LLAMADASOLICITADA;
  }
 
  function CargarVariablesDeRequest():bool
@@ -143,22 +142,31 @@
      return $exito;
  }
 
- function ObtenerHreflangs(array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL):?array
+ function ObtenerHreflangs(array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL, ?int &$total_de_registros = NULL):?array
  {
-    return ObtenerDatos("HREFLANG", $campos, $inicio, $numero_de_registros, $filtros, $ordenamiento);
+     return ObtenerDatos("HREFLANG", $campos, $inicio, $numero_de_registros, $filtros, $ordenamiento, $total_de_registros);
  }
 
- function ObtenerPresentaciones(array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL):?array
+ function ObtenerPresentaciones(array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL, ?int &$total_de_registros = NULL):?array
  {
-     return ObtenerDatos("PRESENTACIONES", $campos, $inicio, $numero_de_registros, $filtros, $ordenamiento);
+    // Agregamos los filtos que siempre deberían proporcionarse
+    if(!$filtros) // Si no se proporcionan filtros
+    {
+        $filtros = array();
+    }
+
+    $filtros[] = array("campo"=>"activo", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>1);
+    $filtros[] = array("campo"=>"publicado", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>1);
+
+    return ObtenerDatos("PRESENTACIONES", $campos, $inicio, $numero_de_registros, $filtros, $ordenamiento, $total_de_registros);
  }
 
- function ObtenerCategorias(array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL):?array
+ function ObtenerCategorias(array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL, ?int &$total_de_registros = NULL):?array
  {
-     return ObtenerDatos("CATEGORIAS", $campos, $inicio, $numero_de_registros, $filtros, $ordenamiento);
+     return ObtenerDatos("CATEGORIAS", $campos, $inicio, $numero_de_registros, $filtros, $ordenamiento, $total_de_registros);
  }
 
- function ObtenerDatos(string $entidad, array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL):?array
+ function ObtenerDatos(string $entidad, array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL, ?int &$total_de_registros = NULL):?array
  {
      global $AEWEB;
 
@@ -189,6 +197,7 @@
      if($estado["estado"] == OK) // Éxito al obtener los datos
      {
          $registros =  $estado["resultado"]["registros"];
+         $total_de_registros = $estado["resultado"]["filtrados"];
      }
 
      return $registros;
