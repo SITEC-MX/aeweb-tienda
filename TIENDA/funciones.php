@@ -21,7 +21,7 @@
             $oa_url = $ao["url"];
             $oa_php = $ao["php"];
             $oa_tipo = isset($ao["tipo"]) ? $ao["tipo"] : "text/html";
-            $oa_querystring = $ao["querystring"];
+            $oa_querystring = isset($ao["querystring"]) ? $ao["querystring"] : array();
 
             // Componemos la / por \/
             $oa_url = str_replace("/", "\/", $oa_url);
