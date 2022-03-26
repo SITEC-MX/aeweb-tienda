@@ -163,7 +163,30 @@
 
  function ObtenerCategorias(array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL, ?int &$total_de_registros = NULL):?array
  {
+     // Agregamos los filtos que siempre deberían proporcionarse
+     if(!$filtros) // Si no se proporcionan filtros
+     {
+         $filtros = array();
+     }
+
+     $filtros[] = array("campo"=>"activo", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>1);
+     $filtros[] = array("campo"=>"publicado", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>1);
+
      return ObtenerDatos("CATEGORIAS", $campos, $inicio, $numero_de_registros, $filtros, $ordenamiento, $total_de_registros);
+ }
+
+ function ObtenerMarcas(array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL, ?int &$total_de_registros = NULL):?array
+ {
+     // Agregamos los filtos que siempre deberían proporcionarse
+    if(!$filtros) // Si no se proporcionan filtros
+    {
+        $filtros = array();
+    }
+
+    $filtros[] = array("campo"=>"activo", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>1);
+    $filtros[] = array("campo"=>"publicado", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>1);
+
+     return ObtenerDatos("MARCAS", $campos, $inicio, $numero_de_registros, $filtros, $ordenamiento, $total_de_registros);
  }
 
  function ObtenerDatos(string $entidad, array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL, ?int &$total_de_registros = NULL):?array
@@ -191,6 +214,7 @@
          case "HREFLANGS": $estado = $AEWEB->POST_TiendaHreflangsQuery(NULL, NULL, $body); break;
          case "PRESENTACIONES": $estado = $AEWEB->POST_InventarioPresentacionesQuery(NULL, NULL, $body); break;
          case "CATEGORIAS": $estado = $AEWEB->POST_InventarioCategoriasQuery(NULL, NULL, $body); break;
+         case "MARCAS": $estado = $AEWEB->POST_InventarioMarcasQuery(NULL, NULL, $body); break;
      }
 
      $registros = NULL;
@@ -203,7 +227,7 @@
      return $registros;
  }
 
- function ObtenerURLImagenChicaPresentacion(?string $presentacion_url, ?bool $imagen_en_repositorio_auxiliar):string
+ function ObtenerURLImagenChicaPresentacion(?string $presentacion_url, ?bool $imagen_en_repositorio_auxiliar):?string
  {
      global $CFG;
 
@@ -221,10 +245,6 @@
          $repositorio_host = $imagen_en_repositorio_auxiliar ? "archivo-aux" : "archivo";
 
          $url = "https://{$repositorio_host}.aeweb.app/{$empresa}/{$dirname}/{$filename_chica}.webp";
-     }
-     else // Si no hay imagen de presentación
-     {
-         $url = "/app/assets/img/sin-imagen.png";
      }
 
      return $url;
