@@ -40,11 +40,10 @@ if($OPENAPI_REQUEST && $CFG->activar_cache) // Si el cache está activado
 
 $app_php_script = NULL;
 $app_codigo_error = NULL;
-$AEWEB = NULL;
+$AEWEB = new \Mpsoft\AEWeb\AEWeb($CFG->aeweb_empresa, $CFG->aeweb_token, "tienda");
 
 if($OPENAPI_REQUEST) // Si es una llamada definida
 {
-    $AEWEB = new \Mpsoft\AEWeb\AEWeb($CFG->aeweb_empresa, $CFG->aeweb_token, "tienda");
     $variables_cargadas_correctamente = CargarVariablesDeRequest();
 
     if($variables_cargadas_correctamente) // Éxito al cargar las variables solicitadas

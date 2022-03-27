@@ -79,7 +79,6 @@
             case "hreflang":
                 $filtros = array
                 (
-                    array("campo"=>"activo", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>1),
                     array("campo"=>"url", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>$variable_valor)
                 );
 
@@ -89,21 +88,28 @@
             case "presentacion":
                 $filtros = array
                 (
-                    array("campo"=>"activo", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>1),
                     array("campo"=>"url", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>$variable_valor)
                 );
 
-                $exito_variable = CargarVariableDeRequest("PRESENTACION", array("id", "producto_nombre", "nombre"), $filtros);
+                $exito_variable = CargarVariableDeRequest("PRESENTACION", array("id", "producto_nombre", "nombre", "codigo", "imagenprincipal_url", "imagenprincipal_repositorio_auxiliar"), $filtros);
                 break;
 
             case "categoria":
                 $filtros = array
                 (
-                    array("campo"=>"activo", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>1),
                     array("campo"=>"url", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>$variable_valor)
                 );
 
                 $exito_variable = CargarVariableDeRequest("CATEGORIA", array("id","nombre"), $filtros);
+                break;
+
+            case "marca":
+                $filtros = array
+                (
+                    array("campo"=>"url", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>$variable_valor)
+                );
+
+                $exito_variable = CargarVariableDeRequest("MARCA", array("id","nombre"), $filtros);
                 break;
 
             default: // Variable no soportada
@@ -130,11 +136,12 @@
          case "HREFLANG": $registros = ObtenerHreflangs($campos, 1, 1, $filtros); break;
          case "PRESENTACION": $registros = ObtenerPresentaciones($campos, 1, 1, $filtros); break;
          case "CATEGORIA": $registros = ObtenerCategorias($campos, 1, 1, $filtros); break;
+         case "MARCA": $registros = ObtenerMarcas($campos, 1, 1, $filtros); break;
      }
 
      if($registros) // Éxito al obtener el registro
      {
-         $GLOBALS[$global_nombre] =  $registros;
+         $GLOBALS[$global_nombre] =  $registros[0];
 
          $exito = TRUE;
      }
@@ -227,7 +234,7 @@
      return $registros;
  }
 
- function ObtenerURLImagenChicaPresentacion(string $tipo, ?string $presentacion_url, ?bool $imagen_en_repositorio_auxiliar):?string
+ function ObtenerURLImagenChica(string $tipo, string $base, ?string $presentacion_url):?string
  {
      global $CFG;
 
@@ -253,10 +260,43 @@
          $dirname = $pathinfo["dirname"];
          $filename_original = $pathinfo["filename"];
 
-         $filename_chica = str_replace('imagen-', "imagen-{$ancho}x{$alto}-", $filename_original);
-         $repositorio_host = $imagen_en_repositorio_auxiliar ? "archivo-aux" : "archivo";
+         $filename_chica = str_replace("{$base}-", "{$base}-{$ancho}x{$alto}-", $filename_original);
 
-         $url = "https://{$repositorio_host}.aeweb.app/{$empresa}/{$dirname}/{$filename_chica}.webp";
+         $url = "https://archivo.aeweb.app/{$empresa}/{$dirname}/{$filename_chica}.webp";
+     }
+
+     return $url;
+ }
+
+ function ObtenerURLImagenGrande(string $tipo, string $base, ?string $presentacion_url):?string
+ {
+     global $CFG;
+
+     $ancho = NULL;
+     $alto = NULL;
+
+     switch($tipo)
+     {
+         case "horizontal": $ancho = 800; $alto = 600; break;
+         case "vertical": $ancho = 600; $alto = 800; break;
+         case "cuadrado": $ancho = 800; $alto = 800; break;
+         default:
+             throw new Exception("Tipo de imagen no soportada.");
+     }
+
+     $url = NULL;
+
+     if($presentacion_url) // Si hay imagen de presentación
+     {
+         $pathinfo = pathinfo($presentacion_url);
+
+         $empresa = $CFG->aeweb_empresa;
+         $dirname = $pathinfo["dirname"];
+         $filename_original = $pathinfo["filename"];
+
+         $filename_chica = str_replace("{$base}-", "{$base}-{$ancho}x{$alto}-", $filename_original);
+
+         $url = "https://archivo.aeweb.app/{$empresa}/{$dirname}/{$filename_chica}.webp";
      }
 
      return $url;
