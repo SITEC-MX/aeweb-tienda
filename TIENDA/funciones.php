@@ -227,9 +227,21 @@
      return $registros;
  }
 
- function ObtenerURLImagenChicaPresentacion(?string $presentacion_url, ?bool $imagen_en_repositorio_auxiliar):?string
+ function ObtenerURLImagenChicaPresentacion(string $tipo, ?string $presentacion_url, ?bool $imagen_en_repositorio_auxiliar):?string
  {
      global $CFG;
+
+     $ancho = NULL;
+     $alto = NULL;
+
+     switch($tipo)
+     {
+         case "horizontal": $ancho = 240; $alto = 320; break;
+         case "vertical": $ancho = 320; $alto = 240; break;
+         case "cuadrado": $ancho = 320; $alto = 320; break;
+         default:
+             throw new Exception("Tipo de imagen no soportada.");
+     }
 
      $url = NULL;
 
@@ -241,7 +253,7 @@
          $dirname = $pathinfo["dirname"];
          $filename_original = $pathinfo["filename"];
 
-         $filename_chica = str_replace('imagen-', 'imagen-240x320-', $filename_original);
+         $filename_chica = str_replace('imagen-', "imagen-{$ancho}x{$alto}-", $filename_original);
          $repositorio_host = $imagen_en_repositorio_auxiliar ? "archivo-aux" : "archivo";
 
          $url = "https://{$repositorio_host}.aeweb.app/{$empresa}/{$dirname}/{$filename_chica}.webp";
