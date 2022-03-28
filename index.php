@@ -55,6 +55,8 @@ $AEWEB = new \Mpsoft\AEWeb\AEWeb($CFG->aeweb_empresa, $CFG->aeweb_token, "tienda
 
 if($OPENAPI_REQUEST) // Si es una llamada definida
 {
+    require_once __APP__ . "/funciones.php";
+
     $variables_cargadas_correctamente = CargarVariablesDeRequest();
 
     if($variables_cargadas_correctamente) // Éxito al cargar las variables solicitadas

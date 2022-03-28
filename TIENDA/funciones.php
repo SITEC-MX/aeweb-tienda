@@ -113,7 +113,7 @@
                 break;
 
             default: // Variable no soportada
-                $exito_variable = FALSE;
+                $exito_variable = CargarVariableDeRequestExterna($variable_nombre, $variable_valor);
         }
 
         if(!$exito_variable) // Error al cargar la variable
