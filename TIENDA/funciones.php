@@ -91,7 +91,7 @@
                     array("campo"=>"url", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>$variable_valor)
                 );
 
-                $exito_variable = CargarVariableDeRequest("PRESENTACION", array("id", "producto_nombre", "nombre", "codigo", "imagenprincipal_url", "imagenprincipal_repositorio_auxiliar"), $filtros);
+                $exito_variable = CargarVariableDeRequest("PRESENTACION", array("id", "codigo", "producto_nombre", "nombre", "producto_informacion", "imagenprincipal_url", "marca_nombre", "marca_url"), $filtros);
                 break;
 
             case "categoria":

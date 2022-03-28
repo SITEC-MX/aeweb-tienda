@@ -18,22 +18,33 @@ $OPENAPI_REQUEST = OpenAPI::ObtenerLlamadaSolicitada($OPENAPI);
 $CACHE_ARCHIVO_RUTA = NULL;
 if($OPENAPI_REQUEST && $CFG->activar_cache) // Si el cache está activado
 {
-    $querystring_str = "";
-    foreach($OPENAPI_REQUEST["get"] as $get_nombre=>$get_valor) // Para cada variable proporcionada por query-string
-    {
-        $querystring_str .= "{$get_nombre}={$get_valor}";
-    }
+    $variable_str = http_build_query($OPENAPI_REQUEST["variable"]);
+    $querystring_str = http_build_query($OPENAPI_REQUEST["get"]);
 
     $base = $OPENAPI_REQUEST["script_php_ruta"];
     $querystring = $querystring_str ? md5($querystring_str) : "";
+    $variable = $variable_str ? md5($variable_str) : "";
 
-    $CACHE_ARCHIVO_RUTA = __CACHE__ . "/{$base}_{$querystring}.html";
+    $CACHE_ARCHIVO_RUTA = __CACHE__ . "/{$base}_{$variable}_{$querystring}.html";
 
     if( file_exists($CACHE_ARCHIVO_RUTA) ) // Si el archivo está disponible en cache
     {
         echo file_get_contents($CACHE_ARCHIVO_RUTA);
         die;
     }
+}
+
+
+
+// Calculamos la URL actual
+$URL_BASE = (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] === "on" ? "https" : "http") . "://" . $_SERVER["HTTP_HOST"];
+$URL_ACTUAL =  $URL_BASE . $_SERVER["REQUEST_URI"];
+
+if($OPENAPI_REQUEST && count($OPENAPI_REQUEST["get"])>0) // Si hay parámetros recibidos por QueryString
+{
+    $querystring_str = http_build_query($OPENAPI_REQUEST["get"]);
+
+    $URL_ACTUAL .= "?{$querystring_str}";
 }
 
 
