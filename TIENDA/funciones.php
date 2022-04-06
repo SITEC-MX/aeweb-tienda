@@ -196,6 +196,94 @@
      return ObtenerDatos("MARCAS", $campos, $inicio, $numero_de_registros, $filtros, $ordenamiento, $total_de_registros);
  }
 
+ function ObtenerPrecios(array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL, ?int &$total_de_registros = NULL):?array
+ {
+     return ObtenerDatos("PRECIOS", $campos, $inicio, $numero_de_registros, $filtros, $ordenamiento, $total_de_registros);
+ }
+
+ function ObtenerExistencias(array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL, ?int &$total_de_registros = NULL):?array
+ {
+     return ObtenerDatos("EXISTENCIAS", $campos, $inicio, $numero_de_registros, $filtros, $ordenamiento, $total_de_registros);
+ }
+
+ function ObtenerPresentacionesConPrecioExistencia(array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL, ?int &$total_de_registros = NULL):?array
+ {
+     $presentaciones = ObtenerPresentaciones
+    (
+        $campos, // Campos
+        $inicio, // Inicio
+        $numero_de_registros, // Número de registros
+        $filtros, // Filtros
+        $ordenamiento, // Ordenamiento
+        $total_de_registros // Conteo de registros
+    );
+
+     // Obtenemos los precios
+     $presentacion_ids = array();
+     foreach($presentaciones as $presentacion)
+     {
+         $presentacion_ids[] = $presentacion["id"];
+     }
+     $presentacion_ids_str = implode($presentacion_ids, ",");
+
+     $precios = ObtenerPrecios
+     (
+         array("presentacion_id", "precio"), // Campos
+         1, // Inicio
+         1000, // Número de registros
+         array // Filtros
+         (
+             array("campo"=>"presentacion_id", "operador"=>FDW_DATO_BDD_OPERADOR_IN, "valor"=>$presentacion_ids_str),
+             array("campo"=>"esquemaprecio_id", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>1)
+         ),
+         NULL, // Ordenamiento
+     );
+
+     $precios_presentacion = array();
+     foreach($precios as $precio) // Para cada precio
+     {
+         $presentacion_id = $precio["presentacion_id"];
+
+         $precios_presentacion[$presentacion_id] = $precio["precio"];
+     }
+
+     // Obtenemos las existencias
+     $existencias = ObtenerExistencias
+     (
+         array("presentacion_id", "existencia"), // Campos
+         1, // Inicio
+         1000, // Número de registros
+         array // Filtros
+         (
+             array("campo"=>"presentacion_id", "operador"=>FDW_DATO_BDD_OPERADOR_IN, "valor"=>$presentacion_ids_str),
+             array("campo"=>"almacen_id", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>1)
+         ),
+         NULL, // Ordenamiento
+     );
+
+     $existencias_presentacion = array();
+     foreach($existencias as $existencia) // Para cada precio
+     {
+         $presentacion_id = $existencia["presentacion_id"];
+
+         $existencias_presentacion[$presentacion_id] = $existencia["existencia"];
+     }
+
+     // Inyectamos la información
+     foreach($presentaciones as $indice=>$presentacion) // Para cada presentación
+     {
+         $presentacion_id = $presentacion["id"];
+
+         $precio = isset($precios_presentacion[$presentacion_id]) ? $precios_presentacion[$presentacion_id] : NULL;
+         $existencia = isset($existencias_presentacion[$presentacion_id]) ? $existencias_presentacion[$presentacion_id] : 0;
+
+         $presentaciones[$indice]["precio"] = $precio;
+         $presentaciones[$indice]["existencia"] = $existencia;
+     }
+
+     return $presentaciones;
+ }
+
  function ObtenerDatos(string $entidad, array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL, ?int &$total_de_registros = NULL):?array
  {
      global $AEWEB;
@@ -222,6 +310,8 @@
          case "PRESENTACIONES": $estado = $AEWEB->POST_InventarioPresentacionesQuery(NULL, NULL, $body); break;
          case "CATEGORIAS": $estado = $AEWEB->POST_InventarioCategoriasQuery(NULL, NULL, $body); break;
          case "MARCAS": $estado = $AEWEB->POST_InventarioMarcasQuery(NULL, NULL, $body); break;
+         case "PRECIOS": $estado = $AEWEB->POST_ContabilidadPrecioQuery(NULL, NULL, $body); break;
+         case "EXISTENCIAS": $estado = $AEWEB->POST_InventarioExistenciaQuery(NULL, NULL, $body); break;
      }
 
      $registros = NULL;
