@@ -16,7 +16,7 @@ $OPENAPI_REQUEST = OpenAPI::ObtenerLlamadaSolicitada($OPENAPI);
 
 // Verificamos si la llamada está disponible en cache
 $CACHE_ARCHIVO_RUTA = NULL;
-if($OPENAPI_REQUEST && $CFG->activar_cache) // Si el cache está activado
+if($OPENAPI_REQUEST && $CFG->activar_cache && $OPENAPI_REQUEST["metodo"] == "GET") // Si el cache está activado y la llamada es GET
 {
     $variable_str = http_build_query($OPENAPI_REQUEST["variable"]);
     $querystring_str = http_build_query($OPENAPI_REQUEST["get"]);
@@ -29,6 +29,7 @@ if($OPENAPI_REQUEST && $CFG->activar_cache) // Si el cache está activado
 
     if( file_exists($CACHE_ARCHIVO_RUTA) ) // Si el archivo está disponible en cache
     {
+        header("Content-Type: " . $OPENAPI_REQUEST["respuesta_tipo"]);
         echo file_get_contents($CACHE_ARCHIVO_RUTA);
         die;
     }
@@ -55,17 +56,24 @@ $AEWEB = new \Mpsoft\AEWeb\AEWeb($CFG->aeweb_empresa, $CFG->aeweb_token, "tienda
 
 if($OPENAPI_REQUEST) // Si es una llamada definida
 {
-    require_once __APP__ . "/funciones.php";
-
-    $variables_cargadas_correctamente = CargarVariablesDeRequest();
-
-    if($variables_cargadas_correctamente) // Éxito al cargar las variables solicitadas
+    if($OPENAPI_REQUEST["metodo"] !== "XXX") // Si el método está definido
     {
-        $app_php_script = $OPENAPI_REQUEST["script_php_ruta"];
+        require_once __APP__ . "/funciones.php";
+
+        $variables_cargadas_correctamente = CargarVariablesDeRequest();
+
+        if($variables_cargadas_correctamente) // Éxito al cargar las variables solicitadas
+        {
+            $app_php_script = $OPENAPI_REQUEST["script_php_ruta"];
+        }
+        else // Error al cargar las variables solicitadas
+        {
+            $app_codigo_error = 404;
+        }
     }
-    else // Error al cargar las variables solicitadas
+    else // Si el método no está definido
     {
-        $app_codigo_error = 404;
+        $app_codigo_error = 405;
     }
 }
 else // Si la llamada no está definida
@@ -81,15 +89,16 @@ if(!$app_codigo_error) // Si no se está procesando ningún error
 
     require_once $php_script_ruta;
 
-    $html = ob_get_contents();
+    $contenido = ob_get_contents();
     ob_end_clean();
 
-    if($CFG->activar_cache) // Si el cache está activado
+    if($CFG->activar_cache && $OPENAPI_REQUEST["metodo"] == "GET") // Si el cache está activado y la llamada es GET
     {
-        file_put_contents($CACHE_ARCHIVO_RUTA, $html);
+        file_put_contents($CACHE_ARCHIVO_RUTA, $contenido);
     }
 
-    echo $html;
+    header("Content-Type: " . $OPENAPI_REQUEST["respuesta_tipo"]);
+    echo $contenido;
 }
 else // Si se está procesando un error
 {
@@ -97,6 +106,9 @@ else // Si se está procesando un error
     {
         case 404:
             header($_SERVER["SERVER_PROTOCOL"] . " 404 Not Found", TRUE, 404);
+            break;
+        case 405:
+            header($_SERVER["SERVER_PROTOCOL"] . " 405 Method Not Allowed", TRUE, 405);
             break;
     }
 

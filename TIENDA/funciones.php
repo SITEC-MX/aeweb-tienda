@@ -20,14 +20,20 @@
         {
             $oa_url = $ao["url"];
             $oa_php = $ao["php"];
-            $oa_tipo = isset($ao["tipo"]) ? $ao["tipo"] : "text/html";
+            $oa_tipo_body = isset($ao["tipo_body"]) ? $ao["tipo_body"] : "application/json";
+            $oa_tipo_respuesta = isset($ao["tipo_respuesta"]) ? $ao["tipo_respuesta"] : "text/html";
             $oa_querystring = isset($ao["querystring"]) ? $ao["querystring"] : array();
+            $oa_body = isset($ao["body"]) ? $ao["body"] : array();
+            $oa_metodo = isset($ao["metodo"]) ? $ao["metodo"] : "GET";
 
             // Componemos la / por \/
             $oa_url = str_replace("/", "\/", $oa_url);
 
+            // Variables de URL
             $oa_variables = NULL;
             preg_match_all('/\{(?<variables>\w+)\}/', $oa_url, $oa_variables);
+            $oa_url_remplazada = preg_replace('/\{(\w+)\}/', '(?<$1>[a-zA-Z0-9+_.-]+)', $oa_url);
+            $url_corregida = "/^{$oa_url_remplazada}$/U";
 
             $variables = array();
             foreach($oa_variables["variables"] as $variable)
@@ -35,6 +41,7 @@
                 $variables[$variable] = array("tipo"=>FDW_DATO_STRING);
             }
 
+            // Query-string
             $querystring = array();
             foreach($oa_querystring as $oa_qs)
             {
@@ -45,21 +52,35 @@
                 $querystring[$oa_qs_nombre] = array("tipo"=>$oa_qs_tipo, "default"=>$oa_qs_default);
             }
 
-            $oa_url_remplazada = preg_replace('/\{(\w+)\}/', '(?<$1>[a-zA-Z0-9+_.-]+)', $oa_url);
-            $url_corregida = "/^{$oa_url_remplazada}$/U";
+            // Body
+            $body = array();
+            foreach($oa_body as $oa_b)
+            {
+                $oa_b_nombre = $oa_b["nombre"];
+                $oa_b_tipo = isset($oa_b["tipo"]) ? $oa_b["tipo"] : FDW_DATO_STRING;
+                $oa_b_default = isset($oa_b["default"]) ? $oa_b["default"] : NULL;
 
-            $openapi[$url_corregida] = array
-            (
-                "script_php_ruta"=>$oa_php,
-                "variables"=>$variables,
-                "metodos"=>array
+                $body[$oa_b_nombre] = array("tipo"=>$oa_b_tipo, "default"=>$oa_b_default);
+            }
+
+            $oam_definicion = array("autenticar"=>FALSE, "get"=>$querystring, "body"=>$body, "body_tipo"=>$oa_tipo_body, "respuesta"=>array(), "respuesta_tipo"=>$oa_tipo_respuesta);
+
+            if( !isset($openapi[$url_corregida]) ) // Si la llamada no está definida
+            {
+                $openapi[$url_corregida] = array
                 (
-                    "GET"=>array
+                    "script_php_ruta"=>$oa_php,
+                    "variables"=>$variables,
+                    "metodos"=>array
                     (
-                        "autenticar"=>FALSE, "get"=>$querystring, "body"=>array(), "body_tipo"=>$oa_tipo, "respuesta"=>array(), "respuesta_tipo"=>"text/html"
+                        "{$oa_metodo}" => $oam_definicion
                     )
-                )
-            );
+                );
+            }
+            else // Si la llamada ya existe
+            {
+                $openapi[$url_corregida][$oa_metodo] = $oam_definicion;
+            }
         }
      }
 
