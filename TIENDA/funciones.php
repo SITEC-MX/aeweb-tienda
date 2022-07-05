@@ -412,3 +412,20 @@
 
      return $url;
  }
+
+ function ObtenerProductosConCategoria(int $categoria_id):array
+ {
+    global $AEWEB;
+
+    $variables = array("id"=>$categoria_id);
+
+    $estado = $AEWEB->GET_InventarioCategoriasProductos($variables);
+
+    $producto_ids = array();
+    if($estado["estado"] == OK) // Éxito al obtener los productos con la categoría
+    {
+        $producto_ids = $estado["resultado"];
+    }
+
+    return $producto_ids;
+ }

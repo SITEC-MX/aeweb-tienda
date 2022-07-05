@@ -19,7 +19,7 @@
     },
     "require": {
         "vlucas/phpdotenv": "^5.4",
-        "sitec/aeweb": "^0.2.2",
+        "sitec/aeweb": "^0.3.0",
         "sitec/fdw": "^2.0"
     }
 }
