@@ -151,11 +151,14 @@
  {
      $exito = FALSE;
 
+     $imagen_tipo = 2; // AE_IMAGENOPTIMIZADA_TIPO_HORIZONTAL
+     $imagen_tamano = 2; // AE_IMAGENOPTIMIZADA_TAMANO_GRANDE
+
      $registros = NULL;
      switch($global_nombre)
      {
          case "HREFLANG": $registros = ObtenerHreflangs($campos, 1, 1, $filtros); break;
-         case "PRESENTACION": $registros = ObtenerPresentaciones($campos, 1, 1, $filtros); break;
+         case "PRESENTACION": $registros = ObtenerPresentaciones($campos, 1, 1, $filtros, NULL, $total_registros, $imagen_tipo, $imagen_tamano); break;
          case "CATEGORIA": $registros = ObtenerCategorias($campos, 1, 1, $filtros); break;
          case "MARCA": $registros = ObtenerMarcas($campos, 1, 1, $filtros); break;
      }
@@ -175,7 +178,7 @@
      return ObtenerDatos("HREFLANG", $campos, $inicio, $numero_de_registros, $filtros, $ordenamiento, $total_de_registros);
  }
 
- function ObtenerPresentaciones(array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL, ?int &$total_de_registros = NULL):?array
+ function ObtenerPresentaciones(array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL, ?int &$total_de_registros = NULL, ?int $imagen_tipo = NULL, ?int $imagen_tamano = NULL):?array
  {
     // Agregamos los filtos que siempre deberían proporcionarse
     if(!$filtros) // Si no se proporcionan filtros
@@ -186,7 +189,7 @@
     $filtros[] = array("campo"=>"activo", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>1);
     $filtros[] = array("campo"=>"publicado", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>1);
 
-    return ObtenerDatos("PRESENTACIONES", $campos, $inicio, $numero_de_registros, $filtros, $ordenamiento, $total_de_registros);
+    return ObtenerDatos("PRESENTACIONES", $campos, $inicio, $numero_de_registros, $filtros, $ordenamiento, $total_de_registros, $imagen_tipo, $imagen_tamano);
  }
 
  function ObtenerCategorias(array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL, ?int &$total_de_registros = NULL):?array
@@ -203,7 +206,7 @@
      return ObtenerDatos("CATEGORIAS", $campos, $inicio, $numero_de_registros, $filtros, $ordenamiento, $total_de_registros);
  }
 
- function ObtenerMarcas(array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL, ?int &$total_de_registros = NULL):?array
+ function ObtenerMarcas(array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL, ?int &$total_de_registros = NULL, ?int $imagen_tipo = NULL, ?int $imagen_tamano = NULL):?array
  {
      // Agregamos los filtos que siempre deberían proporcionarse
     if(!$filtros) // Si no se proporcionan filtros
@@ -214,7 +217,7 @@
     $filtros[] = array("campo"=>"activo", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>1);
     $filtros[] = array("campo"=>"publicado", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>1);
 
-     return ObtenerDatos("MARCAS", $campos, $inicio, $numero_de_registros, $filtros, $ordenamiento, $total_de_registros);
+    return ObtenerDatos("MARCAS", $campos, $inicio, $numero_de_registros, $filtros, $ordenamiento, $total_de_registros, $imagen_tipo, $imagen_tamano);
  }
 
  function ObtenerPrecios(array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL, ?int &$total_de_registros = NULL):?array
@@ -305,7 +308,7 @@
      return $presentaciones;
  }
 
- function ObtenerDatos(string $entidad, array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL, ?int &$total_de_registros = NULL):?array
+ function ObtenerDatos(string $entidad, array $campos, int $inicio, int $numero_de_registros, ?array $filtros = NULL, ?array $ordenamiento = NULL, ?int &$total_de_registros = NULL, ?int $imagen_tipo = NULL, ?int $imagen_tamano = NULL):?array
  {
      global $AEWEB;
 
@@ -322,6 +325,11 @@
      if($ordenamiento)
      {
          $body["ordenamiento_campos"] = $ordenamiento;
+     }
+
+     if($imagen_tipo || $imagen_tamano) // Si se proporciona configuración de imágenes
+     {
+         $body["imagen"] = array("tipo"=>$imagen_tipo, "tamano"=>$imagen_tamano);
      }
 
      $estado = NULL;
@@ -343,74 +351,6 @@
      }
 
      return $registros;
- }
-
- function ObtenerURLImagenChica(string $tipo, string $base, ?string $presentacion_url):?string
- {
-     global $CFG;
-
-     $ancho = NULL;
-     $alto = NULL;
-
-     switch($tipo)
-     {
-         case "horizontal": $ancho = 240; $alto = 320; break;
-         case "vertical": $ancho = 320; $alto = 240; break;
-         case "cuadrado": $ancho = 320; $alto = 320; break;
-         default:
-             throw new Exception("Tipo de imagen no soportada.");
-     }
-
-     $url = NULL;
-
-     if($presentacion_url) // Si hay imagen de presentación
-     {
-         $pathinfo = pathinfo($presentacion_url);
-
-         $empresa = $CFG->aeweb_empresa;
-         $dirname = $pathinfo["dirname"];
-         $filename_original = $pathinfo["filename"];
-
-         $filename_chica = str_replace("{$base}-", "{$base}-{$ancho}x{$alto}-", $filename_original);
-
-         $url = "https://archivo.aeweb.app/{$empresa}/{$dirname}/{$filename_chica}.webp";
-     }
-
-     return $url;
- }
-
- function ObtenerURLImagenGrande(string $tipo, string $base, ?string $presentacion_url):?string
- {
-     global $CFG;
-
-     $ancho = NULL;
-     $alto = NULL;
-
-     switch($tipo)
-     {
-         case "horizontal": $ancho = 800; $alto = 600; break;
-         case "vertical": $ancho = 600; $alto = 800; break;
-         case "cuadrado": $ancho = 800; $alto = 800; break;
-         default:
-             throw new Exception("Tipo de imagen no soportada.");
-     }
-
-     $url = NULL;
-
-     if($presentacion_url) // Si hay imagen de presentación
-     {
-         $pathinfo = pathinfo($presentacion_url);
-
-         $empresa = $CFG->aeweb_empresa;
-         $dirname = $pathinfo["dirname"];
-         $filename_original = $pathinfo["filename"];
-
-         $filename_chica = str_replace("{$base}-", "{$base}-{$ancho}x{$alto}-", $filename_original);
-
-         $url = "https://archivo.aeweb.app/{$empresa}/{$dirname}/{$filename_chica}.webp";
-     }
-
-     return $url;
  }
 
  function ObtenerProductosConCategoria(int $categoria_id):array
