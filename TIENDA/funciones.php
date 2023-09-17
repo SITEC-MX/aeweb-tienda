@@ -103,7 +103,7 @@
                     array("campo"=>"url", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>$variable_valor)
                 );
 
-                $exito_variable = CargarVariableDeRequest("HREFLANG", array("id", "nombre"), $filtros);
+                $exito_variable = CargarVariableDeRequest("HREFLANG", array("id", "nombre", "url"), $filtros);
                 break;
 
             case "presentacion":
@@ -112,7 +112,7 @@
                     array("campo"=>"url", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>$variable_valor)
                 );
 
-                $exito_variable = CargarVariableDeRequest("PRESENTACION", array("id", "codigo", "producto_nombre", "nombre", "producto_resumen", "producto_informacion", "imagenprincipal_url", "marca_nombre", "marca_url"), $filtros);
+                $exito_variable = CargarVariableDeRequest("PRESENTACION", array("id", "codigo", "producto_nombre", "nombre", "producto_resumen", "producto_informacion", "imagenprincipal_url", "marca_nombre", "marca_url", "url"), $filtros);
                 break;
 
             case "categoria":
@@ -121,7 +121,7 @@
                     array("campo"=>"url", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>$variable_valor)
                 );
 
-                $exito_variable = CargarVariableDeRequest("CATEGORIA", array("id","nombre"), $filtros);
+                $exito_variable = CargarVariableDeRequest("CATEGORIA", array("id","nombre", "url"), $filtros);
                 break;
 
             case "marca":
@@ -130,7 +130,7 @@
                     array("campo"=>"url", "operador"=>FDW_DATO_BDD_OPERADOR_IGUAL, "valor"=>$variable_valor)
                 );
 
-                $exito_variable = CargarVariableDeRequest("MARCA", array("id","nombre"), $filtros);
+                $exito_variable = CargarVariableDeRequest("MARCA", array("id","nombre", "url"), $filtros);
                 break;
 
             default: // Variable no soportada
